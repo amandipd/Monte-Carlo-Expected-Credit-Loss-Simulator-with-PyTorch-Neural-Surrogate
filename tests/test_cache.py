@@ -3,34 +3,17 @@ import json
 import sys
 from pathlib import Path
 
-import pytest
-
 _src = Path(__file__).resolve().parent.parent / "src"
 if str(_src) not in sys.path:
     sys.path.insert(0, str(_src))
 
 from ai_surrogate.cache import ECLCache, format_cache_key
+from conftest import FakeRedis
 
 
 def test_format_cache_key_is_deterministic():
     assert format_cache_key(6.5, 5.25, 95.0) == "ecl_cache:6.5:5.25:95.0"
     assert format_cache_key(6.501, 5.249, 95.004) == "ecl_cache:6.5:5.25:95.0"
-
-
-class FakeRedis:
-    def __init__(self) -> None:
-        self.store: dict[str, str] = {}
-        self.ttl: dict[str, int] = {}
-
-    def ping(self) -> bool:
-        return True
-
-    def get(self, key: str) -> str | None:
-        return self.store.get(key)
-
-    def setex(self, key: str, ttl: int, value: str) -> None:
-        self.store[key] = value
-        self.ttl[key] = ttl
 
 
 def test_cache_get_miss_when_empty():

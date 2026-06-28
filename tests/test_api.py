@@ -10,48 +10,7 @@ if str(_src) not in sys.path:
     sys.path.insert(0, str(_src))
 
 from ai_surrogate.app import app
-from ai_surrogate.cache import ECLCache
-from ai_surrogate.generate_training_data import generate_dataset
 from ai_surrogate.inference import DEFAULT_MODEL_PATH, DEFAULT_SCALER_PATH
-from ai_surrogate.train import TrainConfig, train_model
-from test_cache import FakeRedis
-
-
-@pytest.fixture
-def api_client(tmp_path, monkeypatch):
-    csv_path = tmp_path / "data.csv"
-    model_path = tmp_path / "surrogate_v1.pt"
-    scaler_path = tmp_path / "scaler_v1.pkl"
-
-    generate_dataset(n_samples=40, n_loans=5_000, output_path=csv_path, seed=21)
-    train_model(
-        TrainConfig(
-            dataset_path=csv_path,
-            model_path=model_path,
-            scaler_path=scaler_path,
-            epochs=40,
-            batch_size=8,
-            patience=10,
-            seed=21,
-        )
-    )
-
-    monkeypatch.setattr(
-        "ai_surrogate.inference.DEFAULT_MODEL_PATH",
-        model_path,
-    )
-    monkeypatch.setattr(
-        "ai_surrogate.inference.DEFAULT_SCALER_PATH",
-        scaler_path,
-    )
-    fake_cache = ECLCache(enabled=True, ttl_seconds=86400, redis_client=FakeRedis())
-    monkeypatch.setattr(
-        "ai_surrogate.app.ECLCache.connect",
-        lambda: fake_cache,
-    )
-
-    with TestClient(app) as client:
-        yield client
 
 
 def test_health_endpoint(api_client):

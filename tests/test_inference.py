@@ -8,31 +8,8 @@ _src = Path(__file__).resolve().parent.parent / "src"
 if str(_src) not in sys.path:
     sys.path.insert(0, str(_src))
 
-from ai_surrogate.generate_training_data import generate_dataset
 from ai_surrogate.inference import SurrogatePredictor, load_predictor, predict_ecl
-from ai_surrogate.train import TrainConfig, train_model
 from config import MACRO_BOUNDS
-
-
-@pytest.fixture
-def trained_artifacts(tmp_path):
-    csv_path = tmp_path / "data.csv"
-    model_path = tmp_path / "surrogate_v1.pt"
-    scaler_path = tmp_path / "scaler_v1.pkl"
-
-    generate_dataset(n_samples=40, n_loans=5_000, output_path=csv_path, seed=11)
-    train_model(
-        TrainConfig(
-            dataset_path=csv_path,
-            model_path=model_path,
-            scaler_path=scaler_path,
-            epochs=30,
-            batch_size=8,
-            patience=10,
-            seed=11,
-        )
-    )
-    return model_path, scaler_path
 
 
 def test_load_predictor(trained_artifacts):
