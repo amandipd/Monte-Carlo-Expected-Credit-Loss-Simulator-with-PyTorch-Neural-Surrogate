@@ -3,3 +3,8 @@ getting_started.md
 .venv
 
 .env
+
+# Generated ML artifacts (keep directory placeholders)
+data/synthetic_ecl_dataset.csv
+models/*.pt
+models/*.pkl
