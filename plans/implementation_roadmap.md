@@ -30,7 +30,7 @@ A working end-to-end path where you can:
 2. Train and save a small PyTorch MLP + feature scaler.
 3. Call `POST /api/v2/predict` with **numeric** macro coordinates and get back a predicted ECL in milliseconds.
 
-**Not in MVP:** Claude translation, executive report synthesis, Redis caching, Docker service for the API. Those are Phase 4–5.
+**Not in MVP:** LLM scenario translation, executive report synthesis, Redis caching, Docker service for the API. Those are Phase 4–5.
 
 ---
 
@@ -171,13 +171,13 @@ A working end-to-end path where you can:
 
 ### Step 3.1 — Add FastAPI deps
 
-- [ ] **What:** `poetry add fastapi uvicorn`
+- [x] **What:** `poetry add fastapi uvicorn`
 - [ ] **Files:** `pyproject.toml`, `poetry.lock`
 - [ ] **Why here:** API layer depends on a trained model from Phase 2.
 
 ### Step 3.2 — Implement the API app
 
-- [ ] **What:**
+- [x] **What:**
   - Load model + scaler once at startup (`lifespan` handler)
   - `POST /api/v2/predict` — body: `{ unemployment_rate, interest_rate, housing_price_index }`
   - Response: `{ input_macro_coordinates, predicted_ecl, inference_ms }`
@@ -189,54 +189,56 @@ A working end-to-end path where you can:
 
 ### Step 3.3 — Run and manually test the API
 
-- [ ] **Command:** `poetry run uvicorn ai_surrogate.app:app --app-dir src --reload --port 8080`
-- [ ] **Test:** `curl -X POST http://localhost:8080/api/v2/predict -H "Content-Type: application/json" -d '{"unemployment_rate": 6.5, "interest_rate": 5.25, "housing_price_index": 95.0}'`
-- [ ] **Why here:** Confirms end-to-end MVP before adding LLM/Redis complexity.
+- [x] **What:** Start the API locally and confirm `/health` and `/api/v2/predict` return sensible responses.
+- [x] **Command:** `poetry run uvicorn ai_surrogate.app:app --app-dir src --port 8080`
+- [x] **Test:** `POST /api/v2/predict` with numeric macro coordinates — verified via live smoke test
+- [x] **Why here:** Confirms end-to-end MVP before adding LLM/Redis complexity.
 
 ---
 
-## Phase 4 — Claude agent translation + report synthesis
+## Phase 4 — Ollama agent translation + report synthesis
 
-**Goal:** Accept natural-language crisis scenarios; return predicted ECL plus an executive summary.
+**Goal:** Accept natural-language crisis scenarios; return predicted ECL plus an executive summary. Uses **Ollama** (free, local) — no paid Claude/Anthropic API key required.
 
-### Step 4.1 — Add Anthropic SDK
+### Step 4.1 — Ollama client + config
 
-- [ ] **What:** `poetry add anthropic`
-- [ ] **Files:**
-  - **Modify** `pyproject.toml`, `poetry.lock`
-  - **Modify** `.env.example` — `ANTHROPIC_API_KEY=`
-  - **Modify** `src/config.py` — load `ANTHROPIC_API_KEY`
-- [ ] **Why here:** LLM is optional until numeric API works.
+- [x] **What:** Use existing `requests` dependency to call local Ollama HTTP API (`POST /api/chat`). No new paid SDK.
+- [x] **Files:**
+  - **Create** `src/ai_surrogate/llm_client.py`
+  - **Modify** `.env.example` — `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `LLM_MOCK`
+  - **Modify** `src/config.py` — load Ollama settings
+- [x] **Setup:** Install [Ollama](https://ollama.com), run `ollama pull llama3.2` (or your chosen model).
+- [x] **Why here:** LLM is optional until numeric API works; mock mode keeps tests free of Ollama.
 
 ### Step 4.2 — Implement scenario → macro JSON translator
 
-- [ ] **What:**
-  - Define a Claude tool schema with 3 numeric fields
-  - `translate_scenario(text) -> { unemployment_rate, interest_rate, housing_price_index }`
+- [x] **What:**
+  - Prompt Ollama with `format: json` for structured macro output
+  - `translate_scenario(text) -> (unemployment_rate, interest_rate, housing_price_index)`
   - Clip/clamp outputs to configured bounds
-  - Support a `--mock` mode for tests without API calls
-- [ ] **Files:**
+  - `LLM_MOCK=true` or `mock=True` for tests without Ollama running
+- [x] **Files:**
   - **Create** `src/ai_surrogate/agentic_translator.py`
-  - **Create** `src/ai_surrogate/prompts.py` — system prompt + tool definition
-- [ ] **Why here:** Separates LLM I/O from inference logic.
+  - **Create** `src/ai_surrogate/prompts.py` — system + user prompts
+- [x] **Why here:** Separates LLM I/O from inference logic.
 
 ### Step 4.3 — Implement report synthesis
 
-- [ ] **What:** Second Claude call (or same thread) that takes macro coords + predicted ECL and returns a short executive summary markdown string.
-- [ ] **Files:**
+- [x] **What:** Second Ollama call that takes macro coords + predicted ECL and returns a short executive summary markdown string.
+- [x] **Files:**
   - **Create** `src/ai_surrogate/report_synthesizer.py`
-- [ ] **Why here:** Keeps translation and narrative generation independently testable.
+- [x] **Why here:** Keeps translation and narrative generation independently testable.
 
 ### Step 4.4 — Add the natural-language endpoint
 
-- [ ] **What:**
+- [x] **What:**
   - `POST /api/v2/predict_shock` — body: `{ scenario_description: str }`
   - Flow: translate → predict → synthesize report
-  - Response: `{ input_macro_coordinates, predicted_ecl, executive_summary }`
-- [ ] **Files:**
+  - Response: `{ input_macro_coordinates, predicted_ecl, executive_summary, inference_ms }`
+- [x] **Files:**
   - **Modify** `src/ai_surrogate/app.py`
   - **Modify** `src/ai_surrogate/schemas.py`
-- [ ] **Why here:** This is the full user-facing feature from the original plan.
+- [x] **Why here:** This is the full user-facing feature from the original plan.
 
 ---
 
@@ -246,28 +248,28 @@ A working end-to-end path where you can:
 
 ### Step 5.1 — Implement Redis ECL cache (separate from job queue)
 
-- [ ] **What:**
+- [x] **What:**
   - Key: `ecl_cache:{round(u,2)}:{round(i,2)}:{round(hpi,2)}`
   - Value: JSON `{ predicted_ecl, timestamp }`
   - TTL: 86400 seconds (24 h)
   - On cache hit, skip model inference (still run report synthesis if requested)
-- [ ] **Files:**
+- [x] **Files:**
   - **Create** `src/ai_surrogate/cache.py`
   - **Modify** `src/ai_surrogate/app.py` — check/set cache in predict handlers
   - **Modify** `src/config.py` — `ECL_CACHE_TTL`, `ECL_CACHE_ENABLED`
-- [ ] **Why here:** Reuses existing Redis (`src/config.py` already has `REDIS_HOST`/`REDIS_PORT`) without conflating cache keys with `simulation_jobs` / `simulation_results` queues.
+- [x] **Why here:** Reuses existing Redis (`src/config.py` already has `REDIS_HOST`/`REDIS_PORT`) without conflating cache keys with `simulation_jobs` / `simulation_results` queues.
 
 ### Step 5.2 — Update Docker for the surrogate API
 
-- [ ] **What:**
+- [x] **What:**
   - Add `surrogate-api` service running uvicorn
   - Mount `models/` and optionally `data/` as volumes (or bake model into image for prod)
-  - Pass `ANTHROPIC_API_KEY`, `REDIS_HOST=redis` via environment
+  - Pass Ollama/Redis env vars via environment
   - Rename or document that existing `api` service is the **simulation producer**, not the ML API
-- [ ] **Files:**
+- [x] **Files:**
   - **Modify** `docker-compose.yml`
   - **Modify** `Dockerfile` — ensure `models/`, `data/` dirs exist; copy if baking artifacts in
-- [ ] **Why here:** Docker changes depend on a working app from Phases 3–4.
+- [x] **Why here:** Docker changes depend on a working app from Phases 3–4.
 
 ### Step 5.3 — Docker smoke test
 
@@ -350,7 +352,7 @@ Phase 2  Train surrogate_v1.pt + scaler_v1.pkl
    ↓
 Phase 3  ★ MVP: POST /api/v2/predict (numeric only)
    ↓
-Phase 4  Claude translation + POST /api/v2/predict_shock
+Phase 4  Ollama translation + POST /api/v2/predict_shock
    ↓
 Phase 5  Redis cache + Docker surrogate-api service
    ↓
@@ -390,6 +392,7 @@ Phase 6  Tests + README
 │       ├── cache.py
 │       ├── agentic_translator.py
 │       ├── report_synthesizer.py
+│       ├── llm_client.py
 │       ├── prompts.py
 │       ├── schemas.py
 │       └── app.py

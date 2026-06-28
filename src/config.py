@@ -58,6 +58,17 @@ EVAL_SPOT_CHECK_COUNT = int(os.getenv("EVAL_SPOT_CHECK_COUNT", "5"))
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 
+# ECL inference cache (separate Redis keys from simulation job queues)
+ECL_CACHE_ENABLED = os.getenv("ECL_CACHE_ENABLED", "true").lower() in {"1", "true", "yes"}
+ECL_CACHE_TTL = int(os.getenv("ECL_CACHE_TTL", "86400"))
+
+# LLM agent layer (Ollama — free, local; no paid API key required)
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
+LLM_MOCK = os.getenv("LLM_MOCK", "false").lower() in {"1", "true", "yes"}
+OLLAMA_TIMEOUT_SECONDS = int(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120"))
+
 # How many jobs to split work into (more jobs = more workers can run in parallel)
 N_JOBS = int(os.getenv("N_JOBS", "10"))
 

@@ -99,6 +99,33 @@ docker compose up --build --scale worker=3
 
 The producer (`api`) will run once; Redis and workers stay up. Use `docker compose down` to stop.
 
+### Surrogate ML API (with Redis ECL cache)
+
+Train the model locally first so `models/surrogate_v1.pt` and `models/scaler_v1.pkl` exist, then:
+
+```bash
+docker compose build
+docker compose up -d redis surrogate-api
+```
+
+The surrogate API listens on **http://localhost:8080**. Health check:
+
+```bash
+curl http://localhost:8080/health
+```
+
+Predict (repeat the same request to see `"cached": true` on the second call):
+
+```bash
+curl -X POST http://localhost:8080/api/v2/predict \
+  -H "Content-Type: application/json" \
+  -d '{"unemployment_rate": 6.5, "interest_rate": 5.25, "housing_price_index": 95.0}'
+```
+
+**Note:** The `api` service in `docker-compose.yml` is the **Monte Carlo simulation producer**, not the ML gateway. The ML gateway is `surrogate-api`.
+
+For Ollama from inside Docker, the compose file points at `http://host.docker.internal:11434` (Ollama must be running on your host). Set `LLM_MOCK=true` in the `surrogate-api` environment to skip LLM calls in containers.
+
 ---
 
 ## Architecture & Roadmap (v2 Python Migration)

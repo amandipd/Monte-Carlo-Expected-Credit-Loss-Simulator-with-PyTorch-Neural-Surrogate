@@ -1,9 +1,9 @@
 Simulation Results
 ==================================================
-Total Loans: 100,000
-Defaults: 7,019
-Default Rate: 0.070190 (7.0190%)
-Expected Credit Loss: $789,637,500.00
-Time Taken: 0.0106 seconds
+Total Loans: 50,000
+Defaults: 2,434
+Default Rate: 0.048680 (4.8680%)
+Expected Credit Loss: $273,825,000.00
+Time Taken: 0.0005 seconds
 Method: NumPy Vectorization
-Macro Scenario: unemployment=6.50%, interest=4.20%, hpi=98.00
+Macro Scenario: unemployment=4.00%, interest=3.00%, hpi=100.00
