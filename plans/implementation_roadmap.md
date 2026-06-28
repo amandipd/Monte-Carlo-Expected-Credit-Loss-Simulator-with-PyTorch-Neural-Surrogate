@@ -73,7 +73,7 @@ A working end-to-end path where you can:
 
 ### Step 1.1 — Scaffold the AI surrogate package
 
-- [ ] **What:** Create package dirs and baseline deps (no ML training yet).
+- [x] **What:** Create package dirs and baseline deps (no ML training yet).
 - [ ] **Files:**
   - **Create** `src/ai_surrogate/__init__.py`
   - **Create** `data/.gitkeep`, `models/.gitkeep`
@@ -83,7 +83,7 @@ A working end-to-end path where you can:
 
 ### Step 1.2 — Implement the parameter sampler
 
-- [ ] **What:** Sample `N_SAMPLES` rows from configured macro ranges (uniform or Latin-hypercube). Clip to safe bounds.
+- [x] **What:** Sample `N_SAMPLES` rows from configured macro ranges (uniform or Latin-hypercube). Clip to safe bounds.
 - [ ] **Files:**
   - **Create** `src/ai_surrogate/sampling.py` — `sample_macro_scenarios(n, rng) -> np.ndarray` shape `(n, 3)`
   - **Modify** `src/config.py` — `N_SAMPLES`, `MACRO_BOUNDS` dict
@@ -91,7 +91,7 @@ A working end-to-end path where you can:
 
 ### Step 1.3 — Implement the data generation pipeline
 
-- [ ] **What:** For each sampled scenario, call `ecl_engine.compute_ecl()` with a **reduced** `N_LOANS` (e.g. 100k–1M) for speed. Write CSV.
+- [x] **What:** For each sampled scenario, call `ecl_engine.compute_ecl()` with a **reduced** `N_LOANS` (e.g. 100k–1M) for speed. Write CSV.
 - [ ] **Files:**
   - **Create** `src/ai_surrogate/generate_training_data.py` — CLI entry point
   - **Output** `data/synthetic_ecl_dataset.csv`
@@ -108,7 +108,7 @@ A working end-to-end path where you can:
 
 ### Step 1.4 — Validate the dataset
 
-- [ ] **What:** Check row count, no NaNs, feature ranges, label distribution; spot-check 3 rows by re-running `compute_ecl()` manually.
+- [x] **What:** Check row count, no NaNs, feature ranges, label distribution; spot-check 3 rows by re-running `compute_ecl()` manually.
 - [ ] **Files:**
   - **Create** `src/ai_surrogate/validate_dataset.py` — prints summary stats, exits non-zero on failure
 - [ ] **Command:** `poetry run python src/ai_surrogate/validate_dataset.py`
@@ -122,20 +122,20 @@ A working end-to-end path where you can:
 
 ### Step 2.1 — Add PyTorch dependency
 
-- [ ] **What:** `poetry add torch`
+- [x] **What:** `poetry add torch`
 - [ ] **Files:** `pyproject.toml`, `poetry.lock`
 - [ ] **Why here:** Keeps Phase 1 runnable without installing torch.
 
 ### Step 2.2 — Define the MLP architecture
 
-- [ ] **What:** 3-layer MLP: `3 → 64 → 32 → 1`, ReLU activations, single regression output.
+- [x] **What:** 3-layer MLP: `3 → 64 → 32 → 1`, ReLU activations, single regression output.
 - [ ] **Files:**
   - **Create** `src/ai_surrogate/model.py` — `ECLSurrogate(nn.Module)` with `forward(x)`
 - [ ] **Why here:** Isolated, testable model definition.
 
 ### Step 2.3 — Build Dataset + training loop
 
-- [ ] **What:**
+- [x] **What:**
   - Load CSV with pandas
   - Split train/val (e.g. 80/20)
   - Fit `StandardScaler` on training features; save scaler alongside model
@@ -149,14 +149,14 @@ A working end-to-end path where you can:
 
 ### Step 2.4 — Add a local inference helper
 
-- [ ] **What:** Load model + scaler; `predict_ecl(unemployment, interest_rate, hpi) -> float`. Clip inputs to training bounds.
+- [x] **What:** Load model + scaler; `predict_ecl(unemployment, interest_rate, hpi) -> float`. Clip inputs to training bounds.
 - [ ] **Files:**
   - **Create** `src/ai_surrogate/inference.py`
 - [ ] **Why here:** Shared by CLI smoke tests, FastAPI (Phase 3), and unit tests (Phase 6).
 
 ### Step 2.5 — Training validation gate
 
-- [ ] **What:** Before moving on, confirm:
+- [x] **What:** Before moving on, confirm:
   - Val MAE is acceptably low relative to label range (define a threshold, e.g. < 5% of mean ECL)
   - Manual spot-check: 5 held-out rows, surrogate vs. `compute_ecl()` agree within tolerance
 - [ ] **Files:**
