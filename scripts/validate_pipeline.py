@@ -2,26 +2,17 @@
 from __future__ import annotations
 
 import os
-import sys
 import tempfile
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-SRC = PROJECT_ROOT / "src"
-TESTS = PROJECT_ROOT / "tests"
-for path in (SRC, TESTS):
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
-
 from fastapi.testclient import TestClient
 
-from ai_surrogate.app import app
-from ai_surrogate.cache import ECLCache
-from ai_surrogate.evaluate import EvalConfig, evaluate_model
-from ai_surrogate.generate_training_data import generate_dataset
-from ai_surrogate.train import TrainConfig, train_model
-from conftest import FakeRedis
-
+from risk_engine.surrogate.app import app
+from risk_engine.surrogate.cache import ECLCache
+from risk_engine.surrogate.evaluate import EvalConfig, evaluate_model
+from risk_engine.surrogate.generate_training_data import generate_dataset
+from risk_engine.surrogate.train import TrainConfig, train_model
+from risk_engine.testing.fakes import FakeRedis
 
 def main() -> int:
     os.environ.setdefault("LLM_MOCK", "true")
@@ -74,8 +65,8 @@ def main() -> int:
         )
 
         print("[4/4] API smoke test...")
-        import ai_surrogate.app as app_module
-        import ai_surrogate.inference as inference_module
+        import risk_engine.surrogate.app as app_module
+        import risk_engine.surrogate.inference as inference_module
 
         inference_module.DEFAULT_MODEL_PATH = model_path
         inference_module.DEFAULT_SCALER_PATH = scaler_path
@@ -114,7 +105,6 @@ def main() -> int:
 
     print("=== Pipeline validation PASSED ===")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

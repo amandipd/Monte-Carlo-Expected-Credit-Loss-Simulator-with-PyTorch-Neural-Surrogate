@@ -4,12 +4,48 @@ A quantitative risk system that runs Monte Carlo simulations on large loan portf
 
 ---
 
+## Project layout
+
+```
+.
+├── data/                          # Generated datasets (gitignored CSV)
+├── models/                        # Trained surrogate artifacts (gitignored)
+├── results/                       # Simulation output files
+├── scripts/
+│   ├── validate_pipeline.py       # End-to-end smoke test
+│   ├── validate_pipeline.ps1
+│   └── validate_pipeline.sh
+├── src/risk_engine/               # Main Python package
+│   ├── config.py                  # Environment + path constants
+│   ├── monte_carlo/               # ECL engine + simulators
+│   │   ├── ecl_engine.py
+│   │   ├── loop_calc.py
+│   │   ├── vectorized_calc.py
+│   │   ├── multicore_calc.py
+│   │   └── run_all.py
+│   ├── queue/                     # Redis job queue (simulation workers)
+│   │   ├── consumer.py
+│   │   └── producer.py
+│   ├── surrogate/                 # ML surrogate + FastAPI + Ollama agent
+│   │   ├── app.py
+│   │   ├── train.py
+│   │   ├── inference.py
+│   │   └── ...
+│   └── testing/                   # Shared test doubles (FakeRedis, etc.)
+└── tests/
+    ├── conftest.py
+    ├── unit/                      # Fast unit tests
+    └── integration/               # API + live Redis tests
+```
+
+---
+
 ## Feature overview
 
 | Capability | Status | How |
 |------------|--------|-----|
-| Vectorized / multicore Monte Carlo ECL | ✅ | `src/computations/` |
-| Distributed simulation via Redis queue | ✅ | `src/redis/` + Docker `worker` / `api` |
+| Vectorized / multicore Monte Carlo ECL | ✅ | `risk_engine.monte_carlo` |
+| Distributed simulation via Redis queue | ✅ | `risk_engine.queue` + Docker `worker` / `api` |
 | Synthetic training data generation | ✅ | `generate_training_data.py` |
 | PyTorch ECL surrogate (ms inference) | ✅ | `train.py` → `models/surrogate_v1.pt` |
 | Numeric REST API | ✅ | `POST /api/v2/predict` |
@@ -19,7 +55,7 @@ A quantitative risk system that runs Monte Carlo simulations on large loan portf
 
 **MVP** (Phases 0–3): generate data → train model → numeric API.
 
-**Full stack** (Phases 0–5): everything above, including LLM shock scenarios and Redis cache.
+**Full stack** (Phases 0–6): everything above, including LLM shock scenarios, Redis cache, tests, and docs.
 
 ---
 
@@ -32,7 +68,7 @@ poetry install
 cp .env.example .env   # then edit as needed
 ```
 
-Copy `.env.example` to `.env` and adjust simulation size, Redis, Ollama, and cache settings.
+This installs the `risk_engine` package into the virtual environment — no manual `PYTHONPATH` needed.
 
 ---
 
@@ -42,19 +78,19 @@ Run from the **project root**:
 
 ```bash
 # 1. Generate labeled training CSV (Monte Carlo labels)
-poetry run python src/ai_surrogate/generate_training_data.py
+poetry run python -m risk_engine.surrogate.generate_training_data
 
 # 2. Validate dataset
-poetry run python src/ai_surrogate/validate_dataset.py
+poetry run python -m risk_engine.surrogate.validate_dataset
 
 # 3. Train surrogate → models/surrogate_v1.pt + models/scaler_v1.pkl
-poetry run python src/ai_surrogate/train.py
+poetry run python -m risk_engine.surrogate.train
 
 # 4. Evaluate against validation gates
-poetry run python src/ai_surrogate/evaluate.py
+poetry run python -m risk_engine.surrogate.evaluate
 
 # 5. Start API
-poetry run uvicorn ai_surrogate.app:app --app-dir src --reload --port 8080
+poetry run uvicorn risk_engine.surrogate.app:app --app-dir src --reload --port 8080
 ```
 
 ### API endpoints
@@ -94,26 +130,26 @@ Set `LLM_MOCK=true` to skip Ollama (keyword-based mock translation + template re
 
 ```bash
 # Naive loop — writes results/naive_results.txt
-poetry run python src/computations/loop_calc.py
+poetry run python -m risk_engine.monte_carlo.loop_calc
 
 # Vectorized NumPy — writes results/vectorized_results.txt
-poetry run python src/computations/vectorized_calc.py
+poetry run python -m risk_engine.monte_carlo.vectorized_calc
 
 # Multi-core parallel — writes results/multicore_results.txt
-poetry run python src/computations/multicore_calc.py
+poetry run python -m risk_engine.monte_carlo.multicore_calc
 
 # Run all three and merge into results/all_results.txt
-poetry run python src/computations/run_all.py
+poetry run python -m risk_engine.monte_carlo.run_all
 ```
 
 **Redis distributed workers** (separate from ECL cache):
 
 ```bash
 # Terminal 1
-poetry run python src/redis/consumer.py
+poetry run python -m risk_engine.queue.consumer
 
 # Terminal 2
-poetry run python src/redis/producer.py
+poetry run python -m risk_engine.queue.producer
 ```
 
 ---
@@ -159,7 +195,7 @@ See `.env.example` for macro bounds, hazard rate, and evaluation thresholds.
 
 **Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) running.
 
-### Monte Carlo queue (existing)
+### Monte Carlo queue
 
 | Command | What it does |
 |---------|--------------|
@@ -180,9 +216,7 @@ docker compose up -d redis surrogate-api
 curl http://localhost:8080/health
 ```
 
-Repeat the same `POST /api/v2/predict` body to see `"cached": true` on the second call.
-
-Ollama from Docker uses `http://host.docker.internal:11434` (host must run Ollama). Set `LLM_MOCK=true` on `surrogate-api` to disable LLM in containers.
+Ollama from Docker uses `http://host.docker.internal:11434`. Set `LLM_MOCK=true` on `surrogate-api` to disable LLM in containers.
 
 ### RedisInsight
 
