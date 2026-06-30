@@ -1,9 +1,9 @@
 Simulation Results
 ==================================================
-Total Loans: 50,000,000
-Defaults: 2,436,987
-Default Rate: 0.048740 (4.8740%)
-Expected Credit Loss: $274,161,037,500.00
-Time Taken: 0.9224 seconds
+Total Loans: 50,000
+Defaults: 2,457
+Default Rate: 0.049140 (4.9140%)
+Expected Credit Loss: $276,412,500.00
+Time Taken: 0.7657 seconds
 Method: Multicore (ProcessPoolExecutor)
 Macro Scenario: unemployment=4.00%, interest=3.00%, hpi=100.00

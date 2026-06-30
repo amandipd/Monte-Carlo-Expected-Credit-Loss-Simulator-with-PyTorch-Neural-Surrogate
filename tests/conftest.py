@@ -1,36 +1,13 @@
 """Shared pytest fixtures for the surrogate pipeline."""
-import sys
-from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
-SRC = Path(__file__).resolve().parent.parent / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
-
-from ai_surrogate.app import app
-from ai_surrogate.cache import ECLCache
-from ai_surrogate.generate_training_data import generate_dataset
-from ai_surrogate.train import TrainConfig, train_model
-
-
-class FakeRedis:
-    """In-memory Redis stand-in for API cache tests."""
-
-    def __init__(self) -> None:
-        self.store: dict[str, str] = {}
-        self.ttl: dict[str, int] = {}
-
-    def ping(self) -> bool:
-        return True
-
-    def get(self, key: str) -> str | None:
-        return self.store.get(key)
-
-    def setex(self, key: str, ttl: int, value: str) -> None:
-        self.store[key] = value
-        self.ttl[key] = ttl
+from risk_engine.surrogate.app import app
+from risk_engine.surrogate.cache import ECLCache
+from risk_engine.surrogate.generate_training_data import generate_dataset
+from risk_engine.surrogate.train import TrainConfig, train_model
+from risk_engine.testing.fakes import FakeRedis
 
 
 @pytest.fixture
@@ -76,16 +53,16 @@ def api_client(tmp_path, monkeypatch):
     )
 
     monkeypatch.setattr(
-        "ai_surrogate.inference.DEFAULT_MODEL_PATH",
+        "risk_engine.surrogate.inference.DEFAULT_MODEL_PATH",
         model_path,
     )
     monkeypatch.setattr(
-        "ai_surrogate.inference.DEFAULT_SCALER_PATH",
+        "risk_engine.surrogate.inference.DEFAULT_SCALER_PATH",
         scaler_path,
     )
     fake_cache = ECLCache(enabled=True, ttl_seconds=86400, redis_client=FakeRedis())
     monkeypatch.setattr(
-        "ai_surrogate.app.ECLCache.connect",
+        "risk_engine.surrogate.app.ECLCache.connect",
         lambda: fake_cache,
     )
 

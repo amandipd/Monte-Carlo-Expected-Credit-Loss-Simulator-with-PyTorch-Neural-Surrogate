@@ -6,9 +6,9 @@ RUN pip install --no-cache-dir poetry
 RUN poetry config virtualenvs.create false
 
 COPY pyproject.toml poetry.lock* ./
-RUN poetry install --no-interaction --no-root --only main
-
 COPY src/ src/
+RUN poetry install --no-interaction
+
 RUN mkdir -p /app/results /app/models /app/data
 
-CMD ["python", "src/redis/consumer.py"]
+CMD ["python", "-m", "risk_engine.queue.consumer"]

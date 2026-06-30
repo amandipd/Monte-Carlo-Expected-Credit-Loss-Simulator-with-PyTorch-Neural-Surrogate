@@ -18,7 +18,7 @@ services:
     environment:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
-    command: python src/redis/consumer.py
+    command: python -m risk_engine.queue.consumer
 
   # Monte Carlo simulation producer (pushes jobs to Redis workers — not the ML API)
   api:
@@ -29,7 +29,7 @@ services:
     environment:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
-    command: python src/redis/producer.py
+    command: python -m risk_engine.queue.producer
 
   surrogate-api:
     build: .
@@ -43,12 +43,11 @@ services:
       REDIS_PORT: "6379"
       ECL_CACHE_ENABLED: "true"
       ECL_CACHE_TTL: "86400"
-      # Reach Ollama on the host machine (Windows/macOS Docker Desktop)
       OLLAMA_BASE_URL: http://host.docker.internal:11434
       LLM_MOCK: "false"
     volumes:
       - ./models:/app/models:ro
-    command: uvicorn ai_surrogate.app:app --host 0.0.0.0 --port 8080 --app-dir src
+    command: uvicorn risk_engine.surrogate.app:app --host 0.0.0.0 --port 8080 --app-dir src
     healthcheck:
       test:
         [

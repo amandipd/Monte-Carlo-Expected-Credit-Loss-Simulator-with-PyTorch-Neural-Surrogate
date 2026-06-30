@@ -4,6 +4,6 @@ Total Loans: 50,000
 Defaults: 2,434
 Default Rate: 0.048680 (4.8680%)
 Expected Credit Loss: $273,825,000.00
-Time Taken: 0.0005 seconds
+Time Taken: 0.0006 seconds
 Method: NumPy Vectorization
 Macro Scenario: unemployment=4.00%, interest=3.00%, hpi=100.00
