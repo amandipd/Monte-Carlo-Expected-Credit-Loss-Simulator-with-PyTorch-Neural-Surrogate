@@ -1,7 +1,7 @@
 [project]
-name = "stochastic-credit-risk-and-ecl-engine"
+name = "monte-carlo-ecl-simulator-pytorch-surrogate"
 version = "0.1.0"
-description = ""
+description = "Monte Carlo Expected Credit Loss Simulator with PyTorch Neural Surrogate"
 authors = [
     {name = "amandipd",email = "amandip@berkeley.edu"}
 ]

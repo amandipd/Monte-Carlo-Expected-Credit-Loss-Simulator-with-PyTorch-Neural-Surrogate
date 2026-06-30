@@ -1,3 +1,5 @@
-"""Distributed Monte Carlo Risk Engine — core package."""
+"""Monte Carlo Expected Credit Loss Simulator with PyTorch Neural Surrogate."""
 
-__all__ = ["config"]
+from risk_engine.config import PROJECT_TITLE
+
+__all__ = ["PROJECT_TITLE"]

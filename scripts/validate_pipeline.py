@@ -17,7 +17,7 @@ from risk_engine.testing.fakes import FakeRedis
 def main() -> int:
     os.environ.setdefault("LLM_MOCK", "true")
 
-    print("=== ECL surrogate pipeline validation ===")
+    print("=== Monte Carlo ECL Simulator — pipeline validation ===")
 
     with tempfile.TemporaryDirectory(prefix="ecl_pipeline_") as tmp_dir:
         tmp = Path(tmp_dir)

@@ -8,6 +8,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+PROJECT_TITLE = "Monte Carlo Expected Credit Loss Simulator with PyTorch Neural Surrogate"
 _env_path = PROJECT_ROOT / ".env"
 load_dotenv(_env_path)
 

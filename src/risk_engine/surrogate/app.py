@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 
+from risk_engine.config import PROJECT_TITLE
 from risk_engine.surrogate.agentic_translator import translate_scenario
 from risk_engine.surrogate.cache import ECLCache
 from risk_engine.surrogate.inference import SurrogatePredictor, load_predictor
@@ -18,7 +19,7 @@ from risk_engine.surrogate.schemas import (
 )
 from risk_engine.monte_carlo.ecl_engine import clip_macro_inputs
 
-APP_TITLE = "Distributed ECL Machine Learning Gateway"
+APP_TITLE = PROJECT_TITLE
 
 def _predict_ecl_with_cache(
     predictor: SurrogatePredictor,
