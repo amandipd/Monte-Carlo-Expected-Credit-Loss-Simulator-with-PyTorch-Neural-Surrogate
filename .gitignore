@@ -1,5 +1,6 @@
 concept_guide.md
 getting_started.md
+contributions.md
 .venv
 
 .env
@@ -18,6 +19,5 @@ results/*
 !results/.gitkeep
 
 # Resume / personal benchmark artifacts (local only)
-contributions.md
 scripts/benchmark_metrics.py
 scripts/benchmark_ollama.py
