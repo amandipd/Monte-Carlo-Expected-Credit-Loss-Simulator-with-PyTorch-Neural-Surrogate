@@ -13,12 +13,11 @@ data/synthetic_ecl_dataset.csv
 models/*.pt
 models/*.pkl
 
-# Simulation run outputs (timings, ECL totals — local only)
-results/*.txt
-results/*.json
+# Simulation / benchmark outputs (local only)
+results/*
 !results/.gitkeep
 
 # Resume / personal benchmark artifacts (local only)
-Resume_Bullet_Points.md
+contributions.md
 scripts/benchmark_metrics.py
 scripts/benchmark_ollama.py
