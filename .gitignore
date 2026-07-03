@@ -4,7 +4,21 @@ getting_started.md
 
 .env
 
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+
 # Generated ML artifacts (keep directory placeholders)
 data/synthetic_ecl_dataset.csv
 models/*.pt
 models/*.pkl
+
+# Simulation run outputs (timings, ECL totals — local only)
+results/*.txt
+results/*.json
+!results/.gitkeep
+
+# Resume / personal benchmark artifacts (local only)
+Resume_Bullet_Points.md
+scripts/benchmark_metrics.py
+scripts/benchmark_ollama.py

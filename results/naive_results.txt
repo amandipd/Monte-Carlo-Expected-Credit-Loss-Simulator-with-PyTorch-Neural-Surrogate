@@ -1,9 +1,0 @@
-Simulation Results
-==================================================
-Total Loans: 50,000,000
-Defaults: 2,440,929
-Default Rate: 0.048819 (4.8819%)
-Expected Credit Loss: $274,604,512,500.00
-Time Taken: 1.8017 seconds
-Method: Naive Loop
-Macro Scenario: unemployment=4.00%, interest=3.00%, hpi=100.00
